@@ -31,7 +31,7 @@ cd iredmail-docker
 docker build -t iredmail:latest mysql
 ```
 
-## Running the contained ##
+## Running the container ##
 
 With all information prepared, let's test your new iRedMail server. Currently, we need to terminals to do that, but I will fix this soon. 
 
