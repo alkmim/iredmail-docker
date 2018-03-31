@@ -130,3 +130,4 @@ RUN apt-get purge -y -q dialog apt-utils augeas-tools \
 # Apache: 80/tcp, 443/tcp Postfix: 25/tcp, 587/tcp
 # Dovecot: 110/tcp, 143/tcp, 993/tcp, 995/tcp
 EXPOSE 80 443 25 587 110 143 993 995
+CMD ["run.sh"]

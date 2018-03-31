@@ -33,10 +33,9 @@ docker build -t iredmail:latest mysql
 
 ## Running the container ##
 
-With all information prepared, let's test your new iRedMail server. Currently, we need to terminals to do that, but I will fix this soon. 
+With all information prepared, let's test your new iRedMail server. 
 
 ```
-# Terminal 1
 docker run --rm --privileged -p 80:80 -p 443:443 \
            -e "DOMAIN=example.com" \
            -e "HOSTNAME=mail" \
@@ -48,10 +47,6 @@ docker run --rm --privileged -p 80:80 -p 443:443 \
            -v /tmp/mysql:/var/lib/mysql \
            -v /tmp/vmail:/var/vmail \
            -v /tmp/clamav:/var/lib/clamav \
-           --name=mysql iredmail:latest /sbin/init
-
-# Terminal 2
-docker exec -ti mysql /bin/bash
-run.sh # Inside the container
+           --name=mysql iredmail:latest 
 ```
 
