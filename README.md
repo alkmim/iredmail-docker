@@ -4,7 +4,7 @@ This fork uses ubuntu as image instead of phusion/baseimage.
 
 # iRedMail Docker Container #
 
-iRedMail allows to deploy an OPEN SOURCE, FULLY FLEDGED, FULL-FEATURED mail server in several minutes, for free. If several minutes is long time then this docker container can reduce help you and deploy your mail server in seconds.
+iRedMail allows to deploy an OPEN SOURCE, FULLY FLEDGED, FULL-FEATURED mail server in several minutes, for free. If several minutes is long time then this docker container can help you and deploy your mail server in seconds.
 
 Current version of container uses MySQL for accounts saving. In the future the LDAP can be used, so pull requests are welcome. Container contains all components (Postfix, Dovecot, Fail2ban, ClamAV, Roundcube, and SoGo) and MySQL server. In order to customize container several environmental variables are allowed:
 
@@ -15,54 +15,43 @@ Current version of container uses MySQL for accounts saving. In the future the L
   * TIMEZONE - Container timezone that is propagated to other components
   * SOGO_WORKERS - Number of SOGo workers which can affect SOGo interface performance.
 
-Container is prepared to handle data as persistent using mounted folders for data. Folders prepared for initialization are:PATH/
+## Persistent Data ##
+
+Container is prepared to handle data as persistent using mounted folders for data. Folders prepared for initialization are:
 
  * /var/lib/mysql
  * /var/vmail
  * /var/lib/clamav
 
-With all information prepared, let's test your new iRedMail server:
+## Building ## 
 
 ```
-docker run --privileged -p 80:80 -p 443:443 \
-           -e "DOMAIN=example.com" -e "HOSTNAME=mail" \
+git clone https://github.com/alkmim/iredmail-docker.git
+cd iredmail-docker
+docker build -t iredmail:latest mysql
+```
+
+## Running the contained ##
+
+With all information prepared, let's test your new iRedMail server. Currently, we need to terminals to do that, but I will fix this soon. 
+
+```
+# Terminal 1
+docker run --rm --privileged \
+           -e "DOMAIN=example.com" \
+           -e "HOSTNAME=mail" \
            -e "MYSQL_ROOT_PASSWORD=password" \
            -e "SOGO_WORKERS=1" \
-           -e "TIMEZONE=Europe/Prague" \
+           -e "TIMEZONE=GMT" \
            -e "POSTMASTER_PASSWORD={PLAIN}password" \
            -e "IREDAPD_PLUGINS=['reject_null_sender', 'reject_sender_login_mismatch', 'greylisting', 'throttle', 'amavisd_wblist', 'sql_alias_access_policy']" \
-           -v PATH/mysql:/var/lib/mysql \
-           -v PATH/vmail:/var/vmail \
-           -v PATH/clamav:/var/lib/clamav \
-           --name=iredmail lejmr/iredmail:mysql-latest
+           -v /tmp/mysql:/var/lib/mysql \
+           -v /tmp/vmail:/var/vmail \
+           -v /tmp/clamav:/var/lib/clamav \
+           --name=mysql iredmail:latest /sbin/init
 
+# Terminal 2
+docker exec -ti mysql /bin/bash
+run.sh # Inside the container
 ```
-
-## How to upgrade from 0.9.6 to 0.9.7
-iRedMail v0.9.7 changes structure of its persistent store, for easier email alias management:
- * http://www.iredmail.org/docs/upgrade.iredmail.0.9.6-0.9.7.html#mysqlmariadb-backend-special
-
-In order to apply changes upgrade process is as follows:
-
- - Stop and remove current container ```docker rm -f iredmail```
- - Update image ```docker pull lejmr/iredmail:mysql-0.9.7```
- - Start iRedmail from newer image
- - Initiate upgrade ```docker exec -ti iredmail /sbin/update-iredmail```
-
-
-## How to upgrade from 0.9.5-1 to 0.9.6
-iRedMail v0.9.6 changes structure of its persistent store, so as changes format of SoGo cache:
- * http://www.iredmail.org/docs/upgrade.sogo.combined.sql.tables.html
- * http://www.iredmail.org/docs/upgrade.iredmail.0.9.5.1-0.9.6.html#mysqlmariadb-backend-special
-
-In order to apply changes upgrade process is as follows:
-
- - Stop and remove current container ```docker rm -f iredmail```
- - Update image ```docker pull lejmr/iredmail:mysql-0.9.6```
- - Start iRedmail from newer image
- - Initiate upgrade ```docker exec -ti iredmail /sbin/update-iredmail```
- 
- 
-
-
 
