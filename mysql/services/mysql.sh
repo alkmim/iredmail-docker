@@ -2,12 +2,14 @@
     
 if [ ! -d /var/lib/mysql/mysql ]; then
     echo -n "*** Creating database.. "
-    cd / && tar jxf /root/mysql.tar.bz2
+    cd / && tar jvxf /root/mysql.tar.bz2
     rm /root/mysql.tar.bz2
     echo "done."
 fi
 
 # Start database for changes
+mkdir -v /var/run/mysqld
+chown -Rv mysql:mysql /var/lib/mysql /var/run/mysqld
 exec /sbin/setuser mysql /usr/sbin/mysqld --skip-grant-tables &
 echo "Waiting for MySQL is up"
 while ! mysqladmin ping -h localhost --silent; do

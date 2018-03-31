@@ -1,5 +1,6 @@
-FROM phusion/baseimage:latest
-MAINTAINER Miloš Kozák <milos.kozak@lejmr.com>
+#FROM phusion/baseimage:latest
+FROM ubuntu
+MAINTAINER Gustavo Alkmim <alkmim@alkmim.org>
 
 # Suporting software versions
 ARG IREDMAIL_VERSION=0.9.7
@@ -8,7 +9,7 @@ ARG ADMINER_VERSION=4.3.1
 # Default values changable at startup
 ARG DOMAIN=DOMAIN
 ARG HOSTNAME=HOSTNAME
-ARG TIMEZONE=Europe/Prague
+ARG TIMEZONE=GMT
 ARG SOGO_WORKERS=2
 
 ### Installation
@@ -26,16 +27,17 @@ RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01-no-recommends \
       bzip2 \
       iptables \
       openssl \
-      mysql-server \ 
+      mysql-server \
       netcat \
       memcached \
+      ca-certificates \
     && apt-get autoremove -y -q \
-    && apt-get clean -y -q \ 
+    && apt-get clean -y -q \
     && echo $DOMAIN > /etc/mailname \
     && echo $HOSTNAME > /opt/hostname \
     && mv /bin/uname /bin/uname_ \
     && mv /bin/hostname /bin/hostname_
-    
+
 COPY ./uname /bin/uname
 COPY ./hostname /bin/hostname
 
@@ -49,11 +51,12 @@ RUN wget -O - https://bitbucket.org/zhb/iredmail/downloads/iRedMail-"${IREDMAIL_
 COPY ./config-gen /opt/iredmail/config-gen
 RUN sh ./config-gen $HOSTNAME $DOMAIN > ./config
 
-# Initiate automatic installation process 
+# Initiate automatic installation process
 RUN sed s/$(hostname_)/$(cat /opt/hostname | xargs echo -n).$(cat /etc/mailname | xargs echo -n)/ /etc/hosts > /tmp/hosts_ \
     && cat /tmp/hosts_ > /etc/hosts \
     && rm /tmp/hosts_ \
     && echo $HOSTNAME > /etc/hostname \
+    && chown -R mysql:mysql /var/lib/mysql /var/run/mysqld \
     && sleep 5;service mysql start \
     && sed -i 's/1.3.0/1.3.3/' /opt/iredmail/pkgs/MD5.misc /opt/iredmail/conf/roundcube \
     && sed -i 's/9f81625029663c7b19402542356abd5e/71b16babe3beb7639ad7a4595b3ac92a/' /opt/iredmail/pkgs/MD5.misc \
@@ -69,7 +72,7 @@ RUN sed s/$(hostname_)/$(cat /opt/hostname | xargs echo -n).$(cat /etc/mailname 
       AUTO_CLEANUP_RESTART_POSTFIX=n \
       bash iRedMail.sh \
     && apt-get autoremove -y -q \
-    && apt-get clean -y -q  
+    && apt-get clean -y -q
 
 ### Final configuration
 RUN . ./config \
@@ -111,6 +114,11 @@ ADD services/fail2ban.sh /etc/service/fail2ban/run
 ADD services/clamav-daemon.sh /etc/service/clamav-daemon/run
 ADD services/clamav-freshclam.sh /etc/service/clamav-freshclam/run
 
+ADD run.sh /bin/run.sh
+ADD setuser /sbin/setuser
+
+run chmod 755 /bin/run.sh
+run chmod 755 /sbin/setuser
 
 ### Purge some packets and save disk space
 RUN apt-get purge -y -q dialog apt-utils augeas-tools \
