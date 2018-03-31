@@ -1,3 +1,7 @@
+This is a fork of https://github.com/lejmr/iredmail-docker/ . 
+
+This fork uses ubuntu as image instead of phusion/baseimage. 
+
 # iRedMail Docker Container #
 
 iRedMail allows to deploy an OPEN SOURCE, FULLY FLEDGED, FULL-FEATURED mail server in several minutes, for free. If several minutes is long time then this docker container can reduce help you and deploy your mail server in seconds.
